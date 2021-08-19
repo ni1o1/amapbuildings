@@ -1,0 +1,100 @@
+﻿<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <style type="text/css">
+    html,
+    body,
+    #container {
+        height: 100%;
+    }
+
+    .btn {
+        margin-left: 0.5rem;
+        width: 4rem;
+    }
+    </style>
+    <title>3D楼块导出-By小旭学长</title>
+    <script language="javascript" src="http://webapi.amap.com/maps?v=1.4.15&key=f35aa69595d3fd9527dfe9033a640b9c&plugin=AMap.Scale"></script>
+    <script src="https://cdn.bootcss.com/FileSaver.js/2014-11-29/FileSaver.js"></script>
+        <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css" />
+        <link rel="stylesheet" href="https://cache.amap.com/lbs/static/jquery.range.css" />
+</head>
+
+<body>
+    <div id="container"></div>
+    <div class="input-card" style='width:10rem;'>
+        <div class="input-item">
+            <input type="button" class="btn" value="导出建筑物" onClick="javascript:outputjson()" style='width:8rem;' />
+        </div>
+    </div>
+    <script language="javascript">
+    var buildingLayer = new AMap.Buildings({
+        zIndex: 130,
+        merge: false,
+        sort: false,
+        zooms: [17, 20],
+        heightFactor:1
+    });
+
+    var map = new AMap.Map("container", {
+        zoom: 17,
+        pitch: 50,
+        showIndoorMap: false,
+        showLabel: false,
+        mapStyle: 'amap://styles/light',
+        center: [121.216631, 31.285873],
+        features: ['bg', 'point', 'road'],
+        viewMode: '3D',
+        layers: [
+            new AMap.TileLayer(),
+            buildingLayer,
+        ]
+    });
+
+   function outputjson() {
+        var tiles = map['Ce']['layers'][1]['Ce']['tiles'][0]
+        geojson = {},
+            features = []
+
+      
+            var buildings = buildingLayer['o']['Bf']['sm']
+
+            for (var j = 0; j < buildings.length; j++) {
+                var buildingarea = buildings[j][7]
+                var TD = buildings[j]['TD']
+                var code = buildings[j][3][2]
+                console.log(buildings[j][0])
+                buildingarea1 = []
+                for (var k = 0; k < buildingarea.length; k++) {
+                    buildingarea1.push([buildingarea[k][0], -buildingarea[k][1]])
+                }
+                var tmp = {
+                    'type': 'Feature',
+                    "properties": {
+                        'type':code,
+                        'TD':TD,
+                    },
+                    'geometry': {
+                        'type': 'Polygon',
+                        'coordinates': [buildingarea1]
+                    },
+                }
+                features.push(tmp)
+            }
+        
+        geojson.type = 'FeatureCollection'
+        geojson.features = features
+console.log(buildingLayer['o']['Bf']['sm'])
+console.log(buildingLayer)
+        var content = JSON.stringify(geojson)
+        var blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+        saveAs(blob, "building.json")
+
+    }
+    </script>
+</body>
+
+</html>
